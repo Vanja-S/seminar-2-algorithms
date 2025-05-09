@@ -1,0 +1,456 @@
+\documentclass[sigconf]{acmart}
+\usepackage{graphicx}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+\setcopyright{acmlicensed}
+\copyrightyear{2025}
+\acmYear{2025}
+\acmConference[Algorithms Conference '25]{Proceedings of the Algorithms Conference '25}{May 20-June 3,
+  2025}{Ljubljana, Slovenia}
+\acmISBN{978-1-4503-XXXX-X/25/05}
+\acmDOI{10.1145/XXXXXXX.XXXXXXX}
+
+\acmArticleType{Review}
+
+\title{Verifying Groups in Linear Time}
+
+\author{Vanja Stojanovi\'c}
+\email{vs66277@student.uni-lj.si}
+\authornote{Corresponding author.}
+\affiliation{
+  \institution{University of Ljubljana}
+  \department{Faculty of Mathematics and Physics}
+  \city{Ljubljana}
+  \country{Slovenia}
+}
+
+\author{Bor Panger\v si\v c}
+\affiliation{
+  \institution{University of Ljubljana}
+  \department{Faculty of Mathematics and Physics}
+  \city{Ljubljana}
+  \country{Slovenia}
+}
+
+%— Authors from FRI —%
+\author{Pia Sotlar}
+\affiliation{
+  \institution{University of Ljubljana}
+  \department{Faculty of Computer Science and Informatics}
+  \city{Ljubljana}
+  \country{Slovenia}
+}
+
+\author{Klemen Kav\v ci\v c}
+\affiliation{
+  \institution{University of Ljubljana}
+  \department{Faculty of Computer Science and Informatics}
+  \city{Ljubljana}
+  \country{Slovenia}
+}
+
+\keywords{Groups}
+
+\begin{abstract}
+  Your abstract goes here.
+\end{abstract}
+
+
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+\subsection{Motivation}
+Verifying whether a given multiplication table defines a \textbf{group} is a fundamental problem in computational algebra with applications in cryptography, error-correcting codes, and symbolic computation. The key challenge lies in efficiently checking the \textbf{associativity axiom}, which naively requires testing all possible triplets \((a, b, c)\) to ensure:
+\[
+(a \cdot b) \cdot c = a \cdot (b \cdot c).
+\]
+A brute-force approach would require \(O(n^3)\) time, which is impractical for large \(n\). While prior work has improved this to \(O(n^2 \log n)\) deterministically or \(O(n^2)\) probabilistically, the question remains: \textbf{Can we do better?}
+
+\subsubsection*{Why Linear Time is Non-Obvious}
+A natural hope might be that associativity could be verified in \textbf{subcubic (or even linear) time} by exploiting algebraic structure. However, as demonstrated by the following theorem:
+
+\begin{theorem}[Local Non-Associativity]
+On every set with at least 4 elements, there exists a binary operation that is associative everywhere except on one triplet.
+\end{theorem}
+\begin{proof}
+Let \( S \) be a set with \( |S| \geq 4 \). Choose distinct elements \( a, u, v, w \in S \). Define a binary operation \( * \) on \( S \) as follows:
+\[
+x * y =
+\begin{cases}
+u & \text{if } x = a \text{ and } y = a, \\
+v & \text{if } x = a \text{ and } y = u, \\
+w & \text{otherwise}.
+\end{cases}
+\]
+We claim \( * \) is associative except for the triplet \( (a, a, a) \).
+\\
+\textbf{Non-associativity at \( (a, a, a) \):}
+\[
+(a * a) * a = u * a = w, \quad \text{but} \quad a * (a * a) = a * u = v.
+\]
+Since \( w \neq v \), \( (a * a) * a \neq a * (a * a) \).
+\\
+\textbf{Associativity for all other triplets:}
+\\
+First, let's analyze LHS $=(x \ast y) \ast z$. Let $p_1 = x \ast y$.
+\begin{itemize}
+    \item If $(x,y) = (a,a)$, then $p_1 = u$. LHS $= u \ast z$.
+    Since $u \neq a$, the pair $(u,z)$ is neither $(a,a)$ nor $(a,u)$. So, $u \ast z = w$ by definition (3).
+    \item If $(x,y) = (a,u)$, then $p_1 = v$. LHS $= v \ast z$.
+    Since $v \neq a$, the pair $(v,z)$ is neither $(a,a)$ nor $(a,u)$. So, $v \ast z = w$ by definition (3).
+    \item If $(x,y) \neq (a,a)$ and $(x,y) \neq (a,u)$, then $p_1 = w$. LHS $= w \ast z$.
+    Since $w \neq a$, the pair $(w,z)$ is neither $(a,a)$ nor $(a,u)$. So, $w \ast z = w$ by definition (3).
+\end{itemize}
+In all possible cases for $(x,y)$, LHS $=(x \ast y) \ast z = w$.
+\\
+Next, let's analyze RHS $= x \ast (y \ast z)$. Let $p_2 = y \ast z$.
+\begin{itemize}
+    \item If $(y,z) = (a,a)$, then $p_2 = u$. RHS $= x \ast u$.
+    \begin{itemize}
+        \item If $x = a$, this corresponds to the triplet $(a,a,a)$. As shown before, RHS $= a \ast u = v$.
+        \item If $x \neq a$, the pair $(x,u)$ is not $(a,a)$ (since $x \neq a$) and not $(a,u)$ (since $x \neq a$). So, $x \ast u = w$ by definition (3).
+    \end{itemize}
+    \item If $(y,z) = (a,u)$, then $p_2 = v$. RHS $= x \ast v$.
+    Since $v \neq a$ and $v \neq u$ (as $a,u,v,w$ are distinct), the pair $(x,v)$ cannot be $(a,a)$ (as $v \neq a$) and cannot be $(a,u)$ (as $v \neq u$). So, $x \ast v = w$ by definition (3).
+    \item If $(y,z) \neq (a,a)$ and $(y,z) \neq (a,u)$, then $p_2 = w$. RHS $= x \ast w$.
+    Since $w \neq a$ and $w \neq u$ (as $a,u,v,w$ are distinct), the pair $(x,w)$ cannot be $(a,a)$ (as $w \neq a$) and cannot be $(a,u)$ (as $w \neq u$). So, $x \ast w = w$ by definition (3).
+\end{itemize}
+
+\end{proof}
+
+This construction shows that:
+\begin{itemize}
+    \item \textbf{A single inconsistency suffices to break associativity.}
+    \item \textbf{No local or sparse testing suffices}—even if almost all triplets are associative, the operation may still fail to be a group.
+\end{itemize}
+
+\subsection{Problem Statement}
+Given an \( n \times n \) multiplication table, decide if it represents a valid group.
+
+\subsection{Prior Work}
+\begin{itemize}
+    \item Brute-force: \( O(n^3) \) associativity checks.
+    \item Light’s \( O(n^2 \log n) \) deterministic method.
+    \item Rajagopalan \& Schulman’s randomized \( O(n^2 \log(1/\delta)) \).
+\end{itemize}
+
+\subsection{Contributions}
+\begin{itemize}
+    \item First deterministic \( O(n^2) \) algorithm.
+    \item Use of \textbf{basis sets} and \textbf{4-associativity}.
+    \item Reduction in the search for large subgroups by group decomposition.
+\end{itemize}
+
+\section{Technical Overview}
+\subsection{Testing Group Axioms Efficiently}
+\begin{itemize}
+    \item Identity: Check \( \exists e \in G \) s.t. \( e \cdot g = g \cdot e = g \) (\( O(n) \)).
+    \item Inverses: Find \( g^{-1} \) via exponentiation (\( O(n \log n) \)).
+\end{itemize}
+
+\subsection{4-Associativity and Basis Sets}
+\subsubsection{Basis Definition}
+A set \( S \subseteq G \) where \( S \cdot S = G \) and \( |S| = O(\sqrt{n}) \).
+
+\subsubsection{Key Lemma}
+If \( S \) satisfies 4-associativity, then \( G \) is associative. \\
+\textbf{Proof Sketch}: Expand arbitrary triples into basis elements using consistency of quadruples.
+
+\subsection{Reduction to Finding Large Subgroups}
+\label{sec:large-subgroups}
+
+%\subsubsection{Overview}
+The core challenge in this subsection is constructing a \emph{basis} $S \subseteq G$ with $|S| = O(\sqrt{n})$ and $S^2 = G$, which enables efficient associativity testing via 4-associativity. The authors show that this reduces to finding \emph{large subgroups} $H \leq G$ where $|H| \geq \sqrt{|G|}$.
+
+\begin{definition}[Large Subgroup]
+A proper subgroup $H \leq G$ is \textbf{large} if $\sqrt{|G|} \leq |H| < |G|$.
+\end{definition}
+
+\begin{definition}[Group Decomposition]
+For a group $G$ of size $n$ and parameter $\ell$, an \textbf{$\ell$-decomposition} is a pair $(A,B)$ where:
+\begin{itemize}
+    \item $A \cdot B = G$
+    \item $|A| \leq 2\ell$
+    \item $|B| \leq n/\ell$
+\end{itemize}
+\end{definition}
+
+The reduction proceeds via three main phases:
+
+\textbf{Phase 1: Recursive Decomposition}
+Given a large subgroup $H$, we recursively decompose $G$:
+\begin{itemize}
+    \item \textbf{Base Case}: If $G$ is cyclic of prime order, use arithmetic progressions.
+    \item \textbf{Recursive Case}:
+    \begin{enumerate}
+        \item If $|H| \geq n/(2\ell)$, set $A$ as a left transversal of $H$, $B = H$.
+        \item Else, recursively decompose $H$ and lift to $G$ via transversals.
+    \end{enumerate}
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{GroupDecomposition}
+\begin{algorithmic}[1]
+%\Require Group $G$, parameter $\ell$
+\IF{$|G|$ is prime}
+    \STATE Return cyclic decomposition
+\ELSE
+    \STATE $H \gets \text{LargeSubgroup}(G)$
+    \IF{$|H| \geq n/(2\ell)$}
+        \STATE $A \gets \text{LeftTransversal}(G,H)$
+        \STATE $B \gets H$
+    \ELSE
+        \STATE $(A',B') \gets \text{GroupDecomposition}(H,\ell)$
+        \STATE $A \gets A'$
+        \STATE $B \gets B' \cdot \text{RightTransversal}(G,H)$
+    \ENDIF
+\ENDIF
+\RETURN $(A,B)$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Phase 2: Transversal Computation}
+\begin{lemma}[Left Transversal]
+A left transversal $T$ of $H \leq G$ can be found in $O(n)$ time by:
+\begin{enumerate}
+    \item Greedily selecting representatives from distinct cosets
+    \item Removing entire cosets after selection
+\end{enumerate}
+\end{lemma}
+
+\textbf{Phase 3: Basis Construction}
+\begin{corollary}
+Setting $\ell = \sqrt{n/2}$ yields a basis $S = A \cup B$ with $|S| \leq 2\sqrt{2n} < 3\sqrt{n}$.
+\end{corollary}
+
+
+\subsection{Reduction to Simple Groups}
+\label{sec:simple-groups}
+
+The algorithm reduces the large subgroup search problem to the case of \emph{simple groups} by:
+\begin{itemize}
+    \item Finding normal subgroups efficiently
+    \item Recursively processing quotient groups
+    \item Handling simple groups as base cases
+\end{itemize}
+
+\begin{definition}[Simple Group]
+A group \( G \) is \textbf{simple} if its only normal subgroups are \( \{e\} \) and \( G \) itself.
+\end{definition}
+
+\subsubsection{Identifying normal subgroups}
+The algorithm identifies normal subgroups through:
+
+\textbf{Step 1: Small Generating Set}
+\begin{itemize}
+    \item Compute a generating set \( S \) with \( |S| \leq \log|G| \) in \( \widetilde{O}(n) \) time
+    \item Uses greedy expansion of non-generator elements
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{Generators}
+\begin{algorithmic}[1]
+\STATE \( H \gets \{e\} \)
+\STATE \( S \gets \emptyset \)
+\FOR{each \( a \in A \)}
+    \IF{\( a \notin H \)}
+        \STATE \( S \gets S \cup \{a\} \)
+        \STATE \( H \gets \langle S \rangle \)
+    \ENDIF
+\ENDFOR
+\RETURN \( S \)
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Step 2: Conjugacy Class Graph}
+\begin{itemize}
+    \item Build graph where vertices are conjugacy classes
+    \item Edge \( C_i \to C_j \) if elements from \( C_i \) multiply into \( C_j \)
+    \item Compute in \( \widetilde{O}(n) \) time using generators
+\end{itemize}
+
+\textbf{Step 3: Closed Union Detection}
+\begin{itemize}
+    \item Normal subgroups correspond to closed unions of classes
+    \item Dynamically maintain reachability in the graph
+\end{itemize}
+
+\subsubsection{Recursive Reduction}
+\begin{lemma}[6.2]
+Given an algorithm for simple groups, LargeSubgroup runs in \( O(n^{3/2+\epsilon}) \) time for arbitrary groups.
+\end{lemma}
+
+\begin{algorithm}[H]
+\caption{LargeSubgroup}
+\begin{algorithmic}[1]
+\STATE \( N \gets \text{NormalSubgroup}(G) \)
+\IF{\( N = G \)}
+    \RETURN \(\text{LargeSubgroupOfSimpleGroup}(G)\)
+\ELSIF{\( |N| \geq \sqrt{n} \)}
+    \RETURN \( N \)
+\ELSIF{\( G/N \) has prime order}
+    \STATE Find element \( g \) of prime order \( p \)
+    \RETURN \( \langle g \rangle \)
+\ELSE
+    \STATE \( M \gets \text{LargeSubgroup}(G/N) \)
+    \RETURN \( M \cdot N \)
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Complexity Analysis}
+\begin{itemize}
+    \item Normal subgroup finding: \( \widetilde{O}(n) \) via dynamic graph maintenance
+    \item Recursion depth: \( O(\log n) \) (each step reduces problem size)
+    \item Bottleneck: Simple group handling (\( O(n^{3/2+\epsilon}) \))
+\end{itemize}
+
+\begin{theorem}
+The reduction to simple groups preserves the overall \( O(n^{3/2+\epsilon}) \) time complexity when combined with:
+\begin{itemize}
+    \item \( \widetilde{O}(n) \) normal subgroup detection
+    \item \( O(n^{3/2+\epsilon}) \) simple group processing
+\end{itemize}
+\end{theorem}
+
+\subsection{Finding Large Subgroups of Simple Groups}
+\label{sec:simple-subgroups}
+
+The algorithm handles simple groups through a classification-based approach:
+
+\begin{definition}[Simple Group Types]
+Finite simple groups fall into three categories:
+\begin{itemize}
+    \item Cyclic groups of prime order
+    \item Alternating groups $A_n$ ($n \geq 5$)
+    \item Groups of Lie type and sporadic groups
+\end{itemize}
+\end{definition}
+
+\subsubsection{Classification Strategy}
+\begin{itemize}
+    \item \textbf{Step 1: Group Identification} - Enumerate possible isomorphisms:
+    \begin{algorithm}[H]
+    \caption{EnumerateGroups}
+    \begin{algorithmic}[1]
+    \FOR{each simple group family $f$}
+        \STATE Solve $|f(m,q)| = n$ for parameters $(m,q)$
+        \IF{solution exists}
+            \STATE Add $(f,m,q)$ to candidate list
+        \ENDIF
+    \ENDFOR
+    \RETURN candidates
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \item \textbf{Step 2: Type-Specific Handling} - Different approaches per category
+\end{itemize}
+
+\subsubsection{Algorithmic Approaches}
+
+\textbf{Case 1: Alternating Groups ($A_n$)}
+\begin{itemize}
+    \item Find the natural subgroup $A_{n-1}$
+    \item Implementation steps:
+    \begin{enumerate}
+        \item Identify all 3-cycles (elements of order 3)
+        \item Find a set conjugate to $\{(1,2,k) | 3 \leq k \leq n\}$
+        \item Remove one generator to get $A_{n-1}$
+    \end{enumerate}
+    \item Runtime: $\widetilde{O}(n)$
+\end{itemize}
+
+\textbf{Case 2: Groups of Lie Type}
+\begin{itemize}
+    \item Key tool: Borel subgroups
+    \begin{definition}[Borel Subgroup]
+    A maximal connected solvable subgroup.
+    \end{definition}
+    
+    \item Implementation:
+    \begin{algorithm}[H]
+    \caption{BorelSubgroup}
+    \begin{algorithmic}[1]
+    \STATE Find Sylow $p$-subgroup $P$ (char. $p$ of field)
+    \STATE Compute normalizer $B = N_G(P)$
+    \RETURN $B$
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \item Construct parabolic subgroup:
+    \begin{itemize}
+        \item Find element $a$ such that $P = \langle B, a \rangle$ is large
+        \item Verify $|P| \geq \sqrt{|G|}$
+    \end{itemize}
+    \item Runtime: $O(n^{3/2+\epsilon})$
+\end{itemize}
+
+\textbf{Case 3: Sporadic Groups}
+\begin{itemize}
+    \item Finite list of 26 exceptions + Tits group
+    \item Precomputed large subgroups from group theory literature
+    \item Constant-time lookup
+\end{itemize}
+
+\subsubsection{Theoretical Guarantees}
+\begin{theorem}[Existence]
+Every non-prime simple group contains a large subgroup.
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+\begin{itemize}
+    \item Alternating: $|A_{n-1}| \geq \sqrt{|A_n|}$
+    \item Lie type: Parabolic subgroups satisfy size requirement
+    \item Sporadic: Verified case-by-case
+\end{itemize}
+\end{proof}
+
+\subsubsection{Complexity Analysis}
+\begin{itemize}
+    \item Alternating groups: $\widetilde{O}(n)$ (dominated by 3-cycle detection)
+    \item Lie type: $O(n^{3/2+\epsilon})$ (Borel subgroup construction)
+    \item Sporadic: $O(1)$ (table lookup)
+    \item Classification: $O(\log^4 n)$ (parameter solving)
+\end{itemize}
+
+\begin{lemma}
+The simple group handling preserves the overall $O(n^{3/2+\epsilon})$ time complexity.
+\end{lemma}
+
+% 3. Critical Analysis (3–4 pages)
+\section{Critical Analysis}
+\subsection{Strengths}
+\begin{itemize}
+    \item Optimal complexity (\( \Omega(n^2) \) lower bound).
+    \item Novel techniques: 4-associativity, group decomposition.
+\end{itemize}
+
+\subsection{Limitations}
+
+\subsection{Open Problems}
+
+% 4. Formalni dokazi (1–2 strani)
+\section{Formal Proofs}
+\subsection{4-Associativity Lemma}
+
+\subsection{Existence of Large Subgroups}
+Proof that non-prime finite groups have subgroups of size \( \geq \sqrt{n} \).
+
+% 5. Conclusion (0.5–1 page)
+\section{Conclusion}
+Summary of results, implications for computational group theory, and future directions.
+
+% References
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
