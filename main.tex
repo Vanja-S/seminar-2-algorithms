@@ -55,10 +55,15 @@
   \country{Slovenia}
 }
 
-\keywords{Groups}
+\keywords{Groups, Computational group theory, Cayley tables}
 
 \begin{abstract}
-  Your abstract goes here.
+  \bfseries
+  We explore the latest upper and optimal bounds on the problem of deciding 
+  whether a given \(n \times n\) multiplication table is a Cayley multiplication table of a 
+  finite group, presented in \cite{10756141} and its cofindings. Exploring the applications of
+  this algorithm, such as in computational group theory software, coding theory \cite{zurekCodingTheory} etc.
+  \normalfont
 \end{abstract}
 
 
@@ -136,11 +141,33 @@ This construction shows that:
 \subsection{Problem Statement}
 Given an \( n \times n \) multiplication table, decide if it represents a valid group.
 
+\subsection{Applications of the Finding and Usage of Cayley Tables}
+
+Within computational group theory software, such as GAP and Magma, efficient Cayley table verification plays a foundational role.
+These systems allow users to define finite groups by providing their Cayley tables.
+Upon input, the software must verify if the given table adheres to the group axioms (closure, associativity, identity, and inverses)
+before allowing further computations or analysis. 
+
+For instance, if a user intends to find the subgroups, conjugacy classes, or
+other properties of a group defined by its Cayley table, the system first needs to ensure that the input indeed represents a valid group. 
+Efficient verification algorithms make this initial validation process practical, especially for groups of moderate size. 
+Furthermore, while not the most scalable approach for very large groups, Cayley tables can be employed in group isomorphism 
+testing, particularly for groups with a smaller number of elements \cite{williams2015group}.
+
+Finite groups also play a role in coding theory, particularly in the construction of error-correcting codes. For example, cyclic codes have a close 
+relationship with cyclic groups. The algebraic properties of the underlying group often determine the characteristics and error-correcting
+capabilities of these codes. The study of perfect codes (subsets of a graph with specific distance properties relevant to error correction)
+sometimes involves Cayley graphs of groups.
+
+In such contexts, verifying the group structure ensures that the Cayley graph possesses
+the intended properties necessary for code construction and analysis. Additionally, research explores the construction of generator
+and parity check matrices for error-correcting codes directly from the Cayley tables of certain algebraic structures \cite{zurekCodingTheory}.
+
 \subsection{Prior Work}
 \begin{itemize}
     \item Brute-force: \( O(n^3) \) associativity checks.
-    \item Light’s \( O(n^2 \log n) \) deterministic method.
-    \item Rajagopalan \& Schulman’s randomized \( O(n^2 \log(1/\delta)) \).
+    \item Light's \( O(n^2 \log n) \) deterministic method.
+    \item Rajagopalan \& Schulman's randomized \( O(n^2 \log(1/\delta)) \).
 \end{itemize}
 
 \subsection{Contributions}
