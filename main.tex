@@ -139,7 +139,35 @@ This construction shows that:
 \end{itemize}
 
 \subsection{Problem Statement}
-Given an \( n \times n \) multiplication table, decide if it represents a valid group.
+Cayley table describes a structure of a finite group. It arranges all possible products of all the group's elements in a square table. To build a Cayley table we are given a set S and a binary operation \(\cdot : S \times S \rightarrow S\). In case of (\(|S| = n\)), a Cayley table is represented by a \(n\times n\) table, where entry (i,j) is a result of a binary operation on element in row i and element in column j, which is also an element of set S.
+To know if a table represents a Cayley table, three properties have to be satisfied:
+\begin{enumerate}
+    \item Existence of an identity element: \(e: e \cdot s = s \cdot e = s\) for every \(s \in S\).
+    \item Existence of inverses: for each \(s \in S\), there exists \(h \in S\) such that \(s \cdot h = h \cdot s = e\).
+    \item Associativity: \((a \cdot b) \cdot c = a \cdot (b \cdot c)\) for all \(a,b,c \in S\).
+\end{enumerate}
+So if we are given an \( n \times n \) multiplication table, the goal is to determine if it represents a valid group.
+
+A simple example of a Cayley table is one for the group \(\{1,-1 \}\):
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+$\times$ & 1 & $-1$ \\
+\hline
+1   & 1   & $-1$ \\
+\hline
+$-1$ & $-1$ & 1   \\
+\hline
+\end{tabular}
+\end{center}
+
+Some of the features of a Cayley table are:
+\begin{itemize}
+    \item Every row and column of the table should contain each element exactly once.
+    \item The identity element should appear in every row and column exactly once and it should be "distributed" on the main diagonal.
+    \item Each entry must also be a row/column label. Otherwise, the operation is not closed.
+    \item In the table there should be one row in which the column labels appear in order, this indicates the presence of an identity element.
+\end{itemize}
 
 \subsection{Applications of the Finding and Usage of Cayley Tables}
 
