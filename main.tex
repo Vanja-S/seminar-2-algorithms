@@ -192,6 +192,34 @@ the intended properties necessary for code construction and analysis. Additional
 and parity check matrices for error-correcting codes directly from the Cayley tables of certain algebraic structures \cite{zurekCodingTheory}.
 
 \subsection{Prior Work}
+To satisfy the third property of Cayley tables (associativity) we would have to check all triples. So to check for associativity, or more precisely that for every \(a,b,c  \in S\) it holds that \((a\times b)\times c = a\times (b\times c)\) a brute force algorithm would require \(\Theta(n^3)\) time. Before the linear-time algorithm, two other methods for checking associativity were proposed.
+\subsubsection{Light's \( O(n^2 \log n) \) deterministic method}
+In 1949 Dr. F. W. Light noticed that we can check for associativity only for all triples a,b,c such that \(a,c \in S\) and \(b\in R\), where R is a set of generators of S. A generating set R is a set of elements from set S from which you can build all other elements in the set S with the use of group operation. 
+
+For a finite set S and a binary operation \((\cdot)\) we can define two operations:
+
+\[a * c = a\cdot(b\cdot c)\] and
+\[a \circ c= (a\cdot b)\cdot c\]
+
+Associativity holds in S if for every element \(b \in R\) the operations \(*\) and \(\circ\) coincide for all \(a,c \in S\). We can do this reduction because if every element in S can be written as a combination of generators from R, and associativity is preserved, it is enough to verify associativity only on elements from R.
+The general idea is to construct the Cayley tables for both operations and see if they are the same.
+
+This method reduces the number of checks needed compared to checking all the combinations, because it avoids redundant computations. It checks associativity in \(\mathcal{O}(n^2logn)\) for R size \(logn\) and all \(a,c \in S\).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.125\linewidth]{figures/original_table.png}
+    \caption{Example table to demonstrate Light's associativity test}
+\end{figure}
+
+For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is shown in Figure 2 below. We copy the c-row and c-column from the original table into new tables as the top and left headers. For each element in the header, we copy the corresponding column or row from the original table. To prove that associativity holds, we compare the *(c) and °(c) tables. If they are the same, associativity holds for c. Repeating this for all generators confirms associativity for the whole set.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/Lights.png}
+    \caption{Procedure for Light's associativity test}
+\end{figure}
+
 \begin{itemize}
     \item Brute-force: \( O(n^3) \) associativity checks.
     \item Light's \( O(n^2 \log n) \) deterministic method.
@@ -213,12 +241,52 @@ and parity check matrices for error-correcting codes directly from the Cayley ta
 \end{itemize}
 
 \subsection{4-Associativity and Basis Sets}
-\subsubsection{Basis Definition}
-A set \( S \subseteq G \) where \( S \cdot S = G \) and \( |S| = O(\sqrt{n}) \).
+To verify if for a given operation on a set G is associative, many methods have been proposed. As mentioned a brute force approach requires \(\Theta(n^3)\) time. Light proposed a method that reduces the runtime to \(\mathcal{O}(n^2logn)\), while Rajagopalan and Schulman developed a randomized algorithm which achieves running time $O(n^2 \log(1/\delta))$. But, prior to this work, no other method has managed to reach lower running time than that.
+
+\subsubsection{Basis and 4-associativity Definition}
+Before we define and prove 4-associativity we first have to define the basis of a group.
+
+If G is a set with a binary operation \(\cdot\): G×G→G, then a subset S of G is said to be a basis of G if $S\cdot S := \{s1\cdot s2 |s1,s2 \in S\}$ while $|S|\le3\sqrt{|G|}$.
+
+The operation \(\cdot\) is said to be 4-associative over a set S, if for all $a,b,c,d \in S$ we have $((ab)c)d= (ab)(cd) = (a(bc))d= a((bc)d) = a(b(cd))$.
 
 \subsubsection{Key Lemma}
-If \( S \) satisfies 4-associativity, then \( G \) is associative. \\
-\textbf{Proof Sketch}: Expand arbitrary triples into basis elements using consistency of quadruples.
+If \(\cdot\) is 4-associative over S, then \(\cdot\) is associative over G.
+
+\textbf{Proof}:
+To prove 4-associativity over G, we first have to define \(\alpha, \beta,\gamma \in G\). So there exist elements \(a,b,c,d,e,f \in S\) such that
+\[\alpha = ab,\]
+\[\beta = cd,\]
+\[\gamma = ef.\]
+
+
+In order to show \( G \) is associative, we must prove
+\begin{equation}
+((ab)(cd))(ef) = (\alpha \cdot \beta) \cdot \gamma = \alpha \cdot (\beta \cdot \gamma) = (ab)((cd)(ef)). \tag{1}
+\end{equation}
+
+Since \( G = S \cdot S \), we can write
+\[
+b(cd) = uv, \quad a(uv) = wx, \quad (cd)e = st, \quad (st)f = pq, \quad (b(cd))e = yz,
+\]
+with \( p, q, s, t, u, v, w, x, y, z \in S \). Using this, and 4-associativity of \( \cdot \) on \( S \), we get that
+\begin{align}
+((ab)(cd))(ef) &= (a(b(cd)))(ef) = (wx)(ef) = ((wx)e)f \notag \\
+&= ((a(uv))e)f = (a((uv)e))f = (a((b(cd))e))f. \tag{2}
+\end{align}
+
+Completely symmetrically, if we reflect all parentheses, we get
+\begin{align}
+(ab)((cd)(ef)) &= ab(((cd)e)f) = ab(pq) = a(b(pq)) \notag \\
+&= a(b((st)f)) = a((b(st))f) = a((b((cd)e))f). \tag{3}
+\end{align}
+
+Finally, we show that the right-hand sides of (2) and (3) are equal, to deduce (1):
+\[
+(a((b(cd))e))f = (a(yz))f = a((yz)f) = a(((b(cd))e)f) = a((b((cd)e))f).
+\]
+
+Because we enumerate all sets of four elements of S ($|S| = O(\sqrt{n})$), we can check for 4-associativity in $\mathcal{O}\left((n^{1/2})^4\right) = \mathcal{O}(n^2)$ time.
 
 \subsection{Reduction to Finding Large Subgroups}
 \label{sec:large-subgroups}
