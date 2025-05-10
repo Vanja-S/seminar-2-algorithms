@@ -220,24 +220,16 @@ For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is
     \caption{Procedure for Light's associativity test}
 \end{figure}
 
-\begin{itemize}
-    \item Brute-force: \( O(n^3) \) associativity checks.
-    To satisfy the third property of Cayley tables (associativity) we would have to check all triples. So to check for associativity, or more precisely that for every \(a,b,c  \in S\) it holds that \((a\times b)\times c = a\times (b\times c)\) a brute force algorithm would require \(\Theta(n^3)\) time. Before the linear-time algorithm, two other methods for checking associativity were proposed.
+\subsubsection{Rajagopalan \& Schulman's randomized \( O(n^2 \log(1/\delta)) \).}
+Rajagopalan and Schulman \cite{548520} develop a randomized method, which achieves running time $O(n^2 \log(1/\delta))$, where $\delta$ is the allowed error probability. This reduces the time from cubic to nearly quadratic, making the approach much more efficient for large sets.
+Instead of checking all possible triplets in the set, the method randomly samples a carefully chosen number of triples and tests whether the associativity condition holds for each sampled combination. By choosing the number of samples carefully, they can detect non-associativity with high probability, even though they do not check every combination.
+The number of random samples $k$ is determined based on the desired error probability $\delta$:
+\[k = O\left(\frac{\log(1/\delta)}{\epsilon}\right).\]
+Here, $\epsilon$ is the (unknown) fraction of triples where associativity fails. 
+The method guarantees that if the operation is non-associative and enough triples fail, the probability of missing all failing triples after sampling is at most $\delta$. This makes the algorithm particularly useful when working with large data, where deterministic checking is computationally too expensive. It allows researchers to balance speed and confidence: they can choose the acceptable error $\delta$ and get a provably good result much faster than with deterministic methods.
+However, the efficiency depends on having a good understanding or estimate of the expected error $\epsilon$ in the table. If the number of failing triples is very small, the method may not be much more efficient than brute-force checking.
+Rajagopalan and Schulman’s method achieves complexity that is better than the one implied by Light’s observation when we allow a nonzero error probability $\delta$. However, the downside is that it does use randomness and introduces some probability of error.
     
-    \item Light's \( O(n^2 \log n) \) deterministic method.
-
-    
-    \item Rajagopalan \& Schulman's randomized \( O(n^2 \log(1/\delta)) \).
-    Rajagopalan and Schulman develop a randomized method, which achieves running time $O(n^2 \log(1/\delta))$, where $\delta$ is the allowed error probability. This reduces the time from cubic to nearly quadratic, making the approach much more efficient for large sets.
-    Instead of checking all possible triplets in the set, the method randomly samples a carefully chosen number of triples and tests whether the associativity condition holds for each sampled combination. By choosing the number of samples carefully, they can detect non-associativity with high probability, even though they do not check every combination.
-    The number of random samples $k$ is determined based on the desired error probability $\delta$:
-    \[k = O\left(\frac{\log(1/\delta)}{\epsilon}\right).\]
-    Here, $\epsilon$ is the (unknown) fraction of triples where associativity fails. 
-    The method guarantees that if the operation is non-associative and enough triples fail, the probability of missing all failing triples after sampling is at most $\delta$. This makes the algorithm particularly useful when working with large data, where deterministic checking is computationally too expensive. It allows researchers to balance speed and confidence: they can choose the acceptable error $\delta$ and get a provably good result much faster than with deterministic methods.
-    However, the efficiency depends on having a good understanding or estimate of the expected error $\epsilon$ in the table. If the number of failing triples is very small, the method may not be much more efficient than brute-force checking.
-    Rajagopalan and Schulman’s method achieves complexity that is better than the one implied by Light’s observation when we allow a nonzero error probability $\delta$. However, the downside is that it does use randomness and introduces some probability of error.
-    
-\end{itemize}
 
 \subsection{Contributions}
 \begin{itemize}
@@ -247,7 +239,7 @@ For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is
 \end{itemize}
 
 \section{Technical Overview}
-\subsection{Brute force methods}
+\subsection{Testing Group Axioms with Brute Force Methods}
 When given a multiplication table (Cayley table) of a set $S$, we can check whether it has an identity element and inverses by brute force by systematically scanning the table. Each of these processes takes $O(n^2)$ time, where $n$ is the size of the set.
 
 First, we check for the identity element. We need to find an element $e \in S$ that satisfies $e \cdot s = s \cdot e = s$ for all $s \in S$. To do this, we check for each element $s$ (candidate for $e$) all $n$ entries in row $e$ and all $n$ entries in column $e$ to see if they match the expected values. This gives $2n$ checks per candidate and $n$ candidates, for a total of $2n^2$ checks which gives us $O(n^2)$ complexity.
@@ -257,58 +249,56 @@ To check for inverses, we check for each element $s$ whether there exists an ele
 By looping over all rows, columns, and element pairs, we can check identity and inverses in a group table using at most $O(n^2)$ operations — which is efficient compared to the associativity check, which typically requires $O(n^3)$ time. This is why the article focuses on improving the associativity check.
 
 \subsection{Testing Group Axioms Efficiently}
+\subsubsection{Identity: Check \( \exists e \in G \) s.t. \( e \cdot g = g \cdot e = g \) (\( O(n) \)).}
+Testing identity and inverse can be done more efficiently than just with a brute force method. 
+A method to find the identity in $O(n)$ time is to take any $ z \in S$ and multiply it with itself repeatedly. Since the group is finite, there exists $z^k = z^m$, where $k > m$. At this point, the elements start repeating. This happens after raising the element to the $n$-th power.    
+Once we find a repeat, we deduce that multiplying any element by $z^{k-m}$ returns the element itself, which makes it the identity element.
+We can take any element in $s \in G$:\[z^k \cdot s = z^m \cdot s\]
+\[z^{k-m} \cdot s = s\]
+\[z^{k-m}=e\]
+We then have to test the identity with all n elements so we can confirm that this holds for all elements. This takes another $2O(n)$ times (since we test \(e: e \cdot s = s \cdot e = s\) for every \(s \in S\)). 
+Using this approach we only performed an order on $n$ multiplications. $n$ multiplications for finding the $e$ and $2n$ for testing it. Overal this method for finding and checking the identity element runs in $O(n)$ time, which is significantly better than the brute force method that works in $O(n^2)$.
+    
+\subsubsection{Inverses: Find \( g^{-1} \) via exponentiation (\( O(n \log n) \)).}
+From the method above we know that raising any element to the $n$th power yields the identity element $e$. Consequently, multiplying $s$ with itself $n-1$ times gives $s^{n-1}$, which serves as the inverse of $s$ because $s \cdot s^{n-1} = s^n = e$. From this we can say that $s^{-1} = s^{n-1}$
+So for finding the inverse we have to compute for each element $s \in S$ the value $s^{n-1}$. This runs in $O(\log n)$ steps for each element, giving the end complexity of $O(n\log n)$. We then check for each element that $s \cdot s^{-1} = e$. This time complexity is again much faster better than the brute force method $O(n^2)$.
+
+\subsubsection{Example: Finding the Identity and Inverses in \( G = \{1, i, -1, -i\} \)}
+Let \( G = \{1, i, -1, -i\} \) be a set under multiplication. We apply the efficient methods to find the identity and inverses.
+\paragraph{Finding the Identity in \( O(n) \) Time}
+We pick an arbitrary element \( z \in G \). Let \( z = i \).
+We compute successive powers of \( i \) until a repetition occurs:
+\begin{align*}
+i^1 &= i \\
+i^2 &= -1 \\
+i^3 &= -i \\
+i^4 &= 1 \\
+i^5 &= i \quad (\text{repeat detected at } i^5 = i^1)
+\end{align*}
+We found a repeat at \( k = 5 \) and \( m = 1 \). According to the algorithm:\[e = i^{k - m} = i^{5 - 1} = i^4 = 1\]
+This means, the identity element is \( e = 1 \).
+Verification:\[1 \cdot g = g \cdot 1 = g \quad \forall g \in G\]
+We can see, that this holds for all elements:\[1 \cdot i = i,\quad 1 \cdot -1 = -1,\quad 1 \cdot -i = -i,\quad 1 \cdot 1 = 1\]
+\[i \cdot 1 = i, \quad -1 \cdot 1 = -1,\quad -i \cdot 1 = -i,\quad 1 \cdot 1 = 1\]
+This means, that \( e = 1 \) is confirmed as the identity.
+    
+\paragraph{Finding Inverses via Exponentiation in \( O(n \log n) \) Time}
+We compute inverses using:\[g^{-1} = g^{n-1}\]
+where \( n = 4 \) (size of \( G \)).
+We calculate \( g^{-1} \) for each \( g \in G \):
 \begin{itemize}
-    \item Identity: Check \( \exists e \in G \) s.t. \( e \cdot g = g \cdot e = g \) (\( O(n) \)).
-    Testing identity and inverse can be done more efficiently than just with a brute force method. 
-    A method to find the identity in $O(n)$ time is to take any $ z \in S$ and multiply it with itself repeatedly. Since the group is finite, there exists $z^k = z^m$, where $k > m$. At this point, the elements start repeating. This happens after raising the element to the $n$-th power.    
-    Once we find a repeat, we deduce that multiplying any element by $z^{k-m}$ returns the element itself, which makes it the identity element.
-    We can take any element in $s \in G$:\[z^k \cdot s = z^m \cdot s\]
-    \[z^{k-m} \cdot s = s\]
-    \[z^{k-m}=e\]
-    We then have to test the identity with all n elements so we can confirm that this holds for all elements. This takes another $2O(n)$ times (since we test \(e: e \cdot s = s \cdot e = s\) for every \(s \in S\)). 
-    Using this approach we only performed an order on $n$ multiplications. $n$ multiplications for finding the $e$ and $2n$ for testing it. Overal this method for finding and checking the identity element runs in $O(n)$ time, which is significantly better than the brute force method that works in $O(n^2)$.
-    
-    \item Inverses: Find \( g^{-1} \) via exponentiation (\( O(n \log n) \)).
-    From the method above we know that raising any element to the $n$th power yields the identity element $e$. Consequently, multiplying $s$ with itself $n-1$ times gives $s^{n-1}$, which serves as the inverse of $s$ because $s \cdot s^{n-1} = s^n = e$. From this we can say that $s^{-1} = s^{n-1}$
-    So for finding the inverse we have to compute for each element $s \in S$ the value $s^{n-1}$. This runs in $O(\log n)$ steps for each element, giving the end complexity of $O(n\log n)$. We then check for each element that $s \cdot s^{-1} = e$. This time complexity is again much faster better than the brute force method $O(n^2)$.
-
-    \item Example: Finding the Identity and Inverses in \( G = \{1, i, -1, -i\} \)
-    Let \( G = \{1, i, -1, -i\} \) be a set under multiplication. We apply the efficient methods to find the identity and inverses.
-  	\subsubsection*{Finding the Identity in \( O(n) \) Time}
-    We pick an arbitrary element \( z \in G \). Let \( z = i \).
-    We compute successive powers of \( i \) until a repetition occurs:
-    \begin{align*}
-    i^1 &= i \\
-    i^2 &= -1 \\
-    i^3 &= -i \\
-    i^4 &= 1 \\
-    i^5 &= i \quad (\text{repeat detected at } i^5 = i^1)
-    \end{align*}
-    We found a repeat at \( k = 5 \) and \( m = 1 \). According to the algorithm:\[e = i^{k - m} = i^{5 - 1} = i^4 = 1\]
-    This means, the identity element is \( e = 1 \).
-    Verification:\[1 \cdot g = g \cdot 1 = g \quad \forall g \in G\]
-    We can see, that this holds for all elements:\[1 \cdot i = i,\quad 1 \cdot -1 = -1,\quad 1 \cdot -i = -i,\quad 1 \cdot 1 = 1\]
-    \[i \cdot 1 = i, \quad -1 \cdot 1 = -1,\quad -i \cdot 1 = -i,\quad 1 \cdot 1 = 1\]
-    This means, that \( e = 1 \) is confirmed as the identity.
-    
-    \subsubsection*{Finding Inverses via Exponentiation in \( O(n \log n) \) Time}
-    We compute inverses using:\[g^{-1} = g^{n-1}\]
-    where \( n = 4 \) (size of \( G \)).
-    We calculate \( g^{-1} \) for each \( g \in G \):
-    \begin{itemize}
-      \item For \( g = 1 \):\[1^{-1} = 1^{3} = 1 \cdot 1 \cdot 1 = 1\]
-      Verification:\[1 \cdot 1 = 1 = e\]
-      \item For \( g = i \):\[i^{-1} = i^{3} = i \cdot i \cdot i = -i\]
-      Verification:\[i \cdot -i = 1 = e\]
-      \item For \( g = -1 \):\[(-1)^{-1} = (-1)^{3} = (-1) \cdot (-1) \cdot (-1) = -1\]
-      Verification:\[-1 \cdot -1 = 1 = e\]
-      \item For \( g = -i \):\[(-i)^{-1} = (-i)^{3} = (-i) \cdot (-i) \cdot (-i) = (-1) \cdot (-i) = i \]
-      Verification:\[-i \cdot i = 1 = e\]
-    \end{itemize}
-
-  We successfully computed:\[e = 1\]
-  \[1^{-1} = 1,\quad i^{-1} = -i,\quad -1^{-1} = -1,\quad -i^{-1} = i\] using \( O(n) \) operations to find the identity and \( O(n \log n) \) operations to compute inverses for all elements.
+    \item For \( g = 1 \):\[1^{-1} = 1^{3} = 1 \cdot 1 \cdot 1 = 1\]
+    Verification:\[1 \cdot 1 = 1 = e\]
+    \item For \( g = i \):\[i^{-1} = i^{3} = i \cdot i \cdot i = -i\]
+    Verification:\[i \cdot -i = 1 = e\]
+    \item For \( g = -1 \):\[(-1)^{-1} = (-1)^{3} = (-1) \cdot (-1) \cdot (-1) = -1\]
+    Verification:\[-1 \cdot -1 = 1 = e\]
+    \item For \( g = -i \):\[(-i)^{-1} = (-i)^{3} = (-i) \cdot (-i) \cdot (-i) = (-1) \cdot (-i) = i \]
+    Verification:\[-i \cdot i = 1 = e\]
 \end{itemize}
+
+We successfully computed:\[e = 1\]
+\[1^{-1} = 1,\quad i^{-1} = -i,\quad -1^{-1} = -1,\quad -i^{-1} = i\] using \( O(n) \) operations to find the identity and \( O(n \log n) \) operations to compute inverses for all elements.
 
 \subsection{4-Associativity and Basis Sets}
 To verify if for a given operation on a set G is associative, many methods have been proposed. As mentioned a brute force approach requires \(\Theta(n^3)\) time. Light proposed a method that reduces the runtime to \(\mathcal{O}(n^2logn)\), while Rajagopalan and Schulman developed a randomized algorithm which achieves running time $O(n^2 \log(1/\delta))$. But, prior to this work, no other method has managed to reach lower running time than that.
@@ -647,3 +637,4 @@ Summary of results, implications for computational group theory, and future dire
 \bibliography{references}
 
 \end{document}
+
