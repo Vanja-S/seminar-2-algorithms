@@ -686,10 +686,16 @@ The simple group handling preserves the overall $O(n^{3/2+\epsilon})$ time compl
 
 \subsection{Limitations}
 
-The classification of sporadic groups relies on precomputed data (e.g., subgroup lattices of the Monster group). This makes the method less self-contained and impractical for new hypothetical simple groups outside the CFSG.
+The algorithm's method for handling simple groups, a crucial step in its group decomposition strategy (Section~\ref{sec:simple-subgroups}), relies significantly on the Classification of Finite Simple Groups (CFSG)~\cite{Aschbacher2004Notices}. In particular, for the 26 sporadic groups, the approach involves a ``constant-time lookup'' of precomputed data, such as their large subgroups~\cite{Conway1985Atlas, Wilson2009Simple}, rather than deriving these properties algorithmically from the input Cayley table using a general procedure. This reliance on an exhaustive list of known exceptions and their externally established properties means that, while effective for all currently known finite simple groups, this specific part of the algorithm is not self-contained in its treatment of sporadic groups. 
 
 \subsection{Open Problems}
-Extend the 4-associativity framework to infinite groups or other algebraic structures (e.g., loops, semigroups). Current techniques heavily rely on finiteness and Lagrange's theorem.
+Building on the core insight from~\cite{10756141}---that 4-associativity on a carefully constructed basis \(S\) (where \(S \cdot S = G\)) implies global associativity for \(G\)---another compelling open problem emerges. The authors of~\cite{10756141} themselves suggest that this observation, despite its direct proof, "could be useful elsewhere." This motivates a broader exploration of such "k-tuple tests on a basis" for verifying other algebraic identities or properties. Key questions include: 
+\begin{itemize}
+    \item For which other fundamental algebraic identities (e.g., distributivity in rings, the Jacobi identity in Lie algebras, or various identities defining specific varieties of loops or semigroups~\cite{Bruck1971SurveyBinary, CliffordPreston1961Vol1}) can one establish a minimal integer \(k\) and a corresponding definition of a "basis" such that a \(k\)-tuple version of the identity holding on this basis guarantees the global identity? 
+    \item How do the requisite properties of such a basis (e.g., covering conditions like \(S^k = G\)) and the value of \(k\) depend on the algebraic structure and the specific identity being tested~\cite{BurrisSankappanavar1981UniversalAlgebra}?
+    \item Could this local-to-global paradigm lead to new efficient, deterministic verification algorithms in contexts where current methods are predominantly probabilistic~\cite{verificationOfIdentities, 548520} or necessitate more exhaustive checks, such as certain instances of the word problem in groups or semigroups~\cite{LyndonSchupp1977Combinatorial}?
+\end{itemize}
+Answering these questions could significantly advance the toolkit for algorithmic verification of properties in diverse algebraic settings.
 
 \section{Conclusion}
 The algorithm achieves $O(n^2)$ time complexity, matching the $\Omega(n^2)$ lower bound for Cayley table verification. This resolves the long-standing open problem of whether associativity can be verified in quadratic time deterministically, surpassing the $O(n^2 \log n)$ of Light's method and the probabilistic $O(n^2 \log(1/\delta))$ of Rajagopalan-Schulman. While its reliance on CFSG and hidden constants may limit immediate practicality, the novel use of 4-associativity and group decomposition opens avenues for future research in algorithm design and algebraic verification.
