@@ -59,10 +59,7 @@
 
 \begin{abstract}
   \bfseries
-  We explore the latest upper and optimal bounds on the problem of deciding 
-  whether a given \(n \times n\) multiplication table is a Cayley multiplication table of a 
-  finite group, presented in \cite{10756141} and its cofindings. Exploring the applications of
-  this algorithm, such as in computational group theory software, coding theory \cite{zurekCodingTheory} etc.
+  This paper reviews the contributions of \cite{10756141}, which presents a deterministic \(O(n^2)\) algorithm for verifying whether an \(n \times n\) Cayley table defines a valid group. We analyze the key techniques—4-associativity, basis sets, and group decomposition—and discuss their implications for computational group theory and applications in cryptography and coding theory \cite{zurekCodingTheory}.
   \normalfont
 \end{abstract}
 
@@ -73,15 +70,43 @@
 
 
 \section{Introduction}
+
+\subsection{Problem Statement}
+We examine the problem of verifying group axioms for a Cayley table, as addressed in \cite{10756141}. Their work establishes the first deterministic \(O(n^2)\) algorithm, improving prior brute-force and probabilistic methods.
+\\A Cayley table for a set \(S\) of size \(n\) and operation \(\cdot\) is an \(n \times n\) matrix where entry \((i,j)\) equals \(s_i \cdot s_j\). The table defines a group if the following conditions hold:
+
+\begin{enumerate}
+    \item \textbf{Identity}: \(\exists e \in S\) such that \(e \cdot s = s \cdot e = s\) for all \(s \in S\).
+    \item \textbf{Inverses}: \(\forall s \in S\), \(\exists s^{-1} \in S\) with \(s \cdot s^{-1} = s^{-1} \cdot s = e\).
+    \item \textbf{Associativity}: \((a \cdot b) \cdot c = a \cdot (b \cdot c)\) for all \(a,b,c \in S\).
+\end{enumerate}
+
+\begin{example}
+For \(\mathbb{Z}_3\) under addition:
+\[
+\begin{array}{|c|ccc|}
+\hline
++ & 0 & 1 & 2 \\ \hline
+0 & 0 & 1 & 2 \\
+1 & 1 & 2 & 0 \\
+2 & 2 & 0 & 1 \\ \hline
+\end{array}
+\]
+Here \(0\) is the identity, and inverses are \(0^{-1}=0\), \(1^{-1}=2\), \(2^{-1}=1\).
+\end{example}
+Given an \( n \times n \) multiplication table, the goal is to determine if it represents a valid group.
+
 \subsection{Motivation}
-Verifying whether a given multiplication table defines a \textbf{group} is a fundamental problem in computational algebra with applications in cryptography, error-correcting codes, and symbolic computation. The key challenge lies in efficiently checking the \textbf{associativity axiom}, which naively requires testing all possible triplets \((a, b, c)\) to ensure:
+Verifying whether a given multiplication table defines a group is a fundamental problem in computational algebra with applications in cryptography, error-correcting codes and symbolic computation. The key challenge lies in efficiently checking the associativity axiom, which naively requires testing all possible triplets \((a, b, c)\) to ensure:
 \[
 (a \cdot b) \cdot c = a \cdot (b \cdot c).
 \]
-A brute-force approach would require \(O(n^3)\) time, which is impractical for large \(n\). While prior work has improved this to \(O(n^2 \log n)\) deterministically or \(O(n^2)\) probabilistically, the question remains: \textbf{Can we do better?}
+A brute-force approach would require \(O(n^3)\) time, which is impractical for large \(n\). While prior work has improved this to \(O\left(\frac{\log(1/\delta)}{\epsilon}\right).\) probabilistically, the question whether this can be removed has been open for some time.
 
 \subsubsection*{Why Linear Time is Non-Obvious}
-A natural hope might be that associativity could be verified in \textbf{subcubic (or even linear) time} by exploiting algebraic structure. However, as demonstrated by the following theorem:
+A natural hope might be that associativity could be verified in subcubic or linear time by exploiting algebraic structure. Associativity a priori seems to demand verification over all \(O(n^3)\) triplets, as the operation's behavior on one subset of elements need not constrain its behavior elsewhere. In \cite{verificationOfIdentities}, Rajagopalan and Schulman discuss this exact problem and show that for certain types of operations, a random algorithm works with high probability. However, as demonstrated by the following theorem, the random sampling approach cannot work in general as non-associativity can be "hidden" in a single triplet, even while the operation appears associative everywhere else.
+
+
 
 \begin{theorem}[Local Non-Associativity]
 On every set with at least 4 elements, there exists a binary operation that is associative everywhere except on one triplet.
@@ -132,35 +157,6 @@ Next, let's analyze RHS $= x \ast (y \ast z)$. Let $p_2 = y \ast z$.
 
 \end{proof}
 
-This construction shows that:
-\begin{itemize}
-    \item \textbf{A single inconsistency suffices to break associativity.}
-    \item \textbf{No local or sparse testing suffices}—even if almost all triplets are associative, the operation may still fail to be a group.
-\end{itemize}
-
-\subsection{Problem Statement}
-Cayley table describes a structure of a finite group. It arranges all possible products of all the group's elements in a square table. To build a Cayley table we are given a set S and a binary operation \(\cdot : S \times S \rightarrow S\). In case of (\(|S| = n\)), a Cayley table is represented by a \(n\times n\) table, where entry (i,j) is a result of a binary operation on element in row i and element in column j, which is also an element of set S.
-To know if a table represents a Cayley table, three properties have to be satisfied:
-\begin{enumerate}
-    \item Existence of an identity element: \(e: e \cdot s = s \cdot e = s\) for every \(s \in S\).
-    \item Existence of inverses: for each \(s \in S\), there exists \(h \in S\) such that \(s \cdot h = h \cdot s = e\).
-    \item Associativity: \((a \cdot b) \cdot c = a \cdot (b \cdot c)\) for all \(a,b,c \in S\).
-\end{enumerate}
-So if we are given an \( n \times n \) multiplication table, the goal is to determine if it represents a valid group \cite{10756141}.
-
-A simple example of a Cayley table is one for the group \(\{1,-1 \}\):
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-$\times$ & 1 & $-1$ \\
-\hline
-1   & 1   & $-1$ \\
-\hline
-$-1$ & $-1$ & 1   \\
-\hline
-\end{tabular}
-\end{center}
-
 \subsection{Applications of the Finding and Usage of Cayley Tables}
 
 Within computational group theory software, such as GAP and Magma, efficient Cayley table verification plays a foundational role.
@@ -198,18 +194,28 @@ The general idea is to construct the Cayley tables for both operations and see i
 
 This method reduces the number of checks needed compared to checking all the combinations, because it avoids redundant computations. It checks associativity in \(\mathcal{O}(n^2logn)\) for R size \(logn\) and all \(a,c \in S\) \cite{clifford1961algebraic}.
 
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{.} & \textbf{a} & \textbf{b} & \textbf{c} & \textbf{d} & \textbf{e} \\ \hline
+\textbf{a} & a & a & a & d & d \\ \hline
+\textbf{b} & a & b & c & d & d \\ \hline
+\textbf{c} & a & c & b & d & d \\ \hline
+\textbf{d} & d & d & d & a & a \\ \hline
+\textbf{e} & d & e & e & a & a \\ \hline
+\end{tabular}
+\caption{Example Cayley Table}
+\label{tab:example}
+\end{table}
+
+In Table~\ref{tab:example} \(\{c,e\}\) is the generating set. For c, the procedure is shown in Figure ~\ref{fig:procedure} below. We copy the c-row and c-column from the original table into new tables as the top and left headers. For each element in the header, we copy the corresponding column or row from the original table. To prove that associativity holds, we compare the tables * (c) and ° (c). If they are the same, associativity holds for c. Repeating this for all generators confirms associativity for the whole set \cite{clifford1961algebraic}.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.125\linewidth]{original_table.png}
-    \caption{Example table to demonstrate Light's associativity test}
-\end{figure}
-
-For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is shown in Figure 2 below. We copy the c-row and c-column from the original table into new tables as the top and left headers. For each element in the header, we copy the corresponding column or row from the original table. To prove that associativity holds, we compare the *(c) and °(c) tables. If they are the same, associativity holds for c. Repeating this for all generators confirms associativity for the whole set \cite{clifford1961algebraic}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\linewidth]{Lights.png}
+    \includegraphics[width=1\linewidth]{Lights.png}
     \caption{Procedure for Light's associativity test}
+    \label{fig:procedure}
 \end{figure}
 
 \subsubsection{Rajagopalan \& Schulman's randomized \( O(n^2 \log(1/\delta)) \).}
@@ -234,79 +240,153 @@ Rajagopalan and Schulman’s method achieves complexity that is better than the 
 \subsection{Testing Group Axioms with Brute Force Methods}
 When given a multiplication table (Cayley table) of a set $S$, we can check whether it has an identity element and inverses by brute force by systematically scanning the table. Each of these processes takes $O(n^2)$ time, where $n$ is the size of the set.
 
-First, we check for the identity element. We need to find an element $e \in S$ that satisfies $e \cdot s = s \cdot e = s$ for all $s \in S$. To do this, we check for each element $s$ (candidate for $e$) all $n$ entries in row $e$ and all $n$ entries in column $e$ to see if they match the expected values. This gives $2n$ checks per candidate and $n$ candidates, for a total of $2n^2$ checks which gives us $O(n^2)$ complexity.
+\begin{algorithm}[H]
+\caption{Brute-Force Identity Element Verification}
+\begin{algorithmic}[1]
+\REQUIRE Cayley table for set $S$ of size $n$
+\ENSURE Identity element $e$ or $\emptyset$ if none exists
+\FOR{each element $e \in S$}
+    \STATE $is\_identity \gets \text{TRUE}$
+    \FOR{each element $g \in S$}
+        \IF{$e \cdot g \neq g$ OR $g \cdot e \neq g$}
+            \STATE $is\_identity \gets \text{FALSE}$
+            \STATE $\textbf{break}$
+        \ENDIF
+    \ENDFOR
+    \IF{$is\_identity$}
+        \RETURN $e$
+    \ENDIF
+\ENDFOR
+\STATE \RETURN $\emptyset$
+\end{algorithmic}
+\end{algorithm}
 
-To check for inverses, we check for each element $s$ whether there exists an element $h$ such that $s \cdot h = h \cdot s = e$. We do this by scanning the row (or column) of $s$ to find a suitable $h$. This may require up to $n$ checks per $s$, and since there are $n$ elements $s$, this gives $n \times n = n^2$, which gives us $\to O(n^2)$ complexity.
+\begin{proposition}
+The brute-force identity verification requires \( O(n^2)\) operations.
+\end{proposition}
 
-By looping over all rows, columns, and element pairs, we can check identity and inverses in a group table using at most $O(n^2)$ operations — which is efficient compared to the associativity check, which typically requires $O(n^3)$ time. This is why the article focuses on improving the associativity check.
+\begin{proof}
+For each of the $n$ candidate elements $e\in S$, we must verify the identity property against all n elements $g \in S$. Each verification requires checking two multiplications, resulting in exactly $2n$ operations in the worst case.
+\end{proof}
+
+
+
+\begin{algorithm}[H]
+\caption{Brute-Force Inverse Elements Verification}
+\begin{algorithmic}[1]
+\REQUIRE Cayley table for set $S$ of size $n$, identity element $e$
+\ENSURE TRUE if all elements have inverses, FALSE otherwise
+\FOR{each element $g \in S$}
+    \STATE $inverse\_found \gets \text{FALSE}$
+    \FOR{each element $h \in S$}
+        \IF{$g \cdot h = e$ AND $h \cdot g = e$}
+            \STATE $inverse\_found \gets \text{TRUE}$
+            \STATE $\textbf{break}$
+        \ENDIF
+    \ENDFOR
+    \IF{NOT $inverse\_found$}
+        \RETURN FALSE
+    \ENDIF
+\ENDFOR
+\STATE \RETURN TRUE
+\end{algorithmic}
+\end{algorithm}
+
+\begin{proposition}
+The brute-force inverse verification requires $O(n^2)$ operations.
+\end{proposition}
+
+\begin{proof}
+For each of the $n$ elements $g \in S$, we search through up to $n$ potential inverses $h \in S$, with each candidate requiring two multiplication checks. This yields a worst-case complexity of $2n^2$ operations.
+\end{proof}
 
 \subsection{Testing Group Axioms Efficiently}
-\subsubsection{Identity: Check \( \exists e \in G \) s.t. \( e \cdot g = g \cdot e = g \) (\( O(n) \)).}
-Testing identity and inverse can be done more efficiently than just with a brute force method. 
-A method to find the identity in $O(n)$ time is to take any $ z \in S$ and multiply it with itself repeatedly. Since the group is finite, there exists $z^k = z^m$, where $k > m$. At this point, the elements start repeating. This happens after raising the element to the $n$-th power.    
-Once we find a repeat, we deduce that multiplying any element by $z^{k-m}$ returns the element itself, which makes it the identity element.
-We can take any element in $s \in G$:\[z^k \cdot s = z^m \cdot s\]
-\[z^{k-m} \cdot s = s\]
-\[z^{k-m}=e\]
-We then have to test the identity with all n elements so we can confirm that this holds for all elements. This takes another $2O(n)$ times (since we test \(e: e \cdot s = s \cdot e = s\) for every \(s \in S\)). 
-Using this approach we only performed an order on $n$ multiplications. $n$ multiplications for finding the $e$ and $2n$ for testing it. Overal this method for finding and checking the identity element runs in $O(n)$ time, which is significantly better than the brute force method that works in $O(n^2)$.
-    
-\subsubsection{Inverses: Find \( g^{-1} \) via exponentiation (\( O(n \log n) \)).}
-From the method above we know that raising any element to the $n$th power yields the identity element $e$. Consequently, multiplying $s$ with itself $n-1$ times gives $s^{n-1}$, which serves as the inverse of $s$ because $s \cdot s^{n-1} = s^n = e$. From this we can say that $s^{-1} = s^{n-1}$
-So for finding the inverse we have to compute for each element $s \in S$ the value $s^{n-1}$. This runs in $O(\log n)$ steps for each element, giving the end complexity of $O(n\log n)$. We then check for each element that $s \cdot s^{-1} = e$. This time complexity is again much faster better than the brute force method $O(n^2)$.
+We present efficient algorithms for verifying the identity and inverse axioms of a group given its multiplication table as mentioned in \cite{10756141}. While brute-force approaches require $O(n^2)$ time for these checks, we demonstrate how to reduce this to $O(n\log n)$ time.
 
-\subsubsection{Example: Finding the Identity and Inverses in \( G = \{1, i, -1, -i\} \)}
-Let \( G = \{1, i, -1, -i\} \) be a set under multiplication. We apply the efficient methods to find the identity and inverses.
-\paragraph{Finding the Identity in \( O(n) \) Time}
-We pick an arbitrary element \( z \in G \). Let \( z = i \).
-We compute successive powers of \( i \) until a repetition occurs:
-\begin{align*}
-i^1 &= i \\
-i^2 &= -1 \\
-i^3 &= -i \\
-i^4 &= 1 \\
-i^5 &= i \quad (\text{repeat detected at } i^5 = i^1)
-\end{align*}
-We found a repeat at \( k = 5 \) and \( m = 1 \). According to the algorithm:\[e = i^{k - m} = i^{5 - 1} = i^4 = 1\]
-This means, the identity element is \( e = 1 \).
-Verification:\[1 \cdot g = g \cdot 1 = g \quad \forall g \in G\]
-We can see, that this holds for all elements:\[1 \cdot i = i,\quad 1 \cdot -1 = -1,\quad 1 \cdot -i = -i,\quad 1 \cdot 1 = 1\]
-\[i \cdot 1 = i, \quad -1 \cdot 1 = -1,\quad -i \cdot 1 = -i,\quad 1 \cdot 1 = 1\]
-This means, that \( e = 1 \) is confirmed as the identity.
-    
-\paragraph{Finding Inverses via Exponentiation in \( O(n \log n) \) Time}
-We compute inverses using:\[g^{-1} = g^{n-1}\]
-where \( n = 4 \) (size of \( G \)).
-We calculate \( g^{-1} \) for each \( g \in G \):
-\begin{itemize}
-    \item For \( g = 1 \):\[1^{-1} = 1^{3} = 1 \cdot 1 \cdot 1 = 1\]
-    Verification:\[1 \cdot 1 = 1 = e\]
-    \item For \( g = i \):\[i^{-1} = i^{3} = i \cdot i \cdot i = -i\]
-    Verification:\[i \cdot -i = 1 = e\]
-    \item For \( g = -1 \):\[(-1)^{-1} = (-1)^{3} = (-1) \cdot (-1) \cdot (-1) = -1\]
-    Verification:\[-1 \cdot -1 = 1 = e\]
-    \item For \( g = -i \):\[(-i)^{-1} = (-i)^{3} = (-i) \cdot (-i) \cdot (-i) = (-1) \cdot (-i) = i \]
-    Verification:\[-i \cdot i = 1 = e\]
-\end{itemize}
+\subsubsection{Identity Element Verification}
 
-We successfully computed:\[e = 1\]
-\[1^{-1} = 1,\quad i^{-1} = -i,\quad -1^{-1} = -1,\quad -i^{-1} = i\] using \( O(n) \) operations to find the identity and \( O(n \log n) \) operations to compute inverses for all elements.
+\begin{theorem}
+Given a finite set $G$ of size $n$ with a binary operation, the identity element $e \in G$, if it exists, can be found and verified in $O(n)$ time.
+\end{theorem}
+
+\begin{proof} The identity verification proceeds in two phases:
+
+1. \textbf{Candidate Identification:} We search for an element $e \in G$ satisfying $e \cdot e = e$. This requires checking $n$ elements with one operation each, yielding $O(n)$ time.
+
+2. \textbf{Identity Validation:} For the candidate $e$, we verify that $e \cdot g = g \cdot e = g$ for all $g \in G$. This requires $2n$ checks (examining both the row and column of $e$ in the multiplication table), maintaining $O(n)$ complexity.
+
+The uniqueness of $e$ follows from standard group theory: if $e'$ were another identity, we would have $e = e \cdot e' = e'$.
+\end{proof}
+
+\subsubsection{Inverse Elements Verification}
+
+\begin{theorem}
+Assuming associativity, the existence of inverses for all elements in $G$ can be verified in $O(n\log n)$ time.
+\end{theorem}
+
+\begin{proof}
+For each $g \in G$, we compute its inverse as $g^{-1} = g^{n-1}$ using the following method:
+
+1. \textbf{Exponentiation by Squaring:} For each element $g$, compute $g^{n-1}$ in $O(\log n)$ time through repeated squaring. This relies on the associativity of the operation.
+
+2. \textbf{Inverse Verification:} For each $g$, confirm that $g \cdot g^{n-1} = e$ in $O(1)$ time per element.
+
+The total time complexity is $O(n\log n)$. The correctness follows from Lagrange's theorem for finite groups, where $g^{|G|} = e$ for any $g \in G$.
+\end{proof}
+
+\subsubsection{Example Application}
+\label{subsec:example}
+
+Consider the group $G = \{1, i, -1, -i\}$ under complex multiplication. We demonstrate our algorithms:
+
+\begin{enumerate}
+    \item \textbf{Identity Finding:} The only element satisfying $e \cdot e = e$ is $1$. Verification shows $1 \cdot g = g \cdot 1 = g$ for all $g \in G$.
+
+    \item \textbf{Inverse Computation:} For $n=4$, we compute:
+    \begin{align*}
+        1^{-1} &= 1^3 = 1 \\
+        i^{-1} &= i^3 = -i \\
+        (-1)^{-1} &= (-1)^3 = -1 \\
+        (-i)^{-1} &= (-i)^3 = i
+    \end{align*}
+    Each computation requires $O(\log n)$ operations, with all inverses verifying correctly against the identity.
+\end{enumerate}
+
+\subsubsection{Complexity Analysis}
+
+Table~\ref{tab:complexity} compares the brute-force and optimized approaches:
+
+\begin{table}[h]
+\centering
+\caption{Time complexity comparison for group axiom verification}
+\label{tab:complexity}
+\begin{tabular}{lcc}
+\hline
+Operation & Brute-Force & Optimized \\
+\hline
+Identity Verification & $O(n^2)$ & $O(n)$ \\
+Inverse Verification & $O(n^2)$ & $O(n\log n)$ \\
+\hline
+\end{tabular}
+\end{table}
+
+
 
 \subsection{4-Associativity and Basis Sets}
-To verify if for a given operation on a set G is associative, many methods have been proposed. As mentioned a brute force approach requires \(\Theta(n^3)\) time. Light proposed a method that reduces the runtime to \(\mathcal{O}(n^2logn)\), while Rajagopalan and Schulman developed a randomized algorithm which achieves running time $O(n^2 \log(1/\delta))$. But, prior to this work, no other method has managed to reach lower running time than that.
+To verify if for a given operation on a set G is associative, many methods have been proposed. Light proposed a method that reduces the runtime of the \(\mathcal{O}(n^3)\) brute force approach to \(\mathcal{O}(n^2log(n))\), while Rajagopalan and Schulman developed a randomized algorithm which achieves running time $O(n^2 \log(1/\delta))$. Prior to this work, no other method had managed to reach a faster running time.
 
 \subsubsection{Basis and 4-associativity Definition}
-Before we define and prove 4-associativity we first have to define the basis of a group.
-
+\begin{definition}
 If G is a set with a binary operation \(\cdot\): G×G→G, then a subset S of G is said to be a basis of G if $S\cdot S := \{s1\cdot s2 |s1,s2 \in S\}$ while $|S|\le3\sqrt{|G|}$.
+\end{definition}
 
 The operation \(\cdot\) is said to be 4-associative over a set S, if for all $a,b,c,d \in S$ we have $((ab)c)d= (ab)(cd) = (a(bc))d= a((bc)d) = a(b(cd))$.
 
 \subsubsection{Key Lemma}
 If \(\cdot\) is 4-associative over S, then \(\cdot\) is associative over G.
 
-\textbf{Proof}:
-To prove 4-associativity over G, we first have to define \(\alpha, \beta,\gamma \in G\). So there exist elements \(a,b,c,d,e,f \in S\) such that
+\textbf{Proof (Adapted from \cite{10756141})}:
+To prove 4-associativity over G, we first define \(\alpha, \beta,\gamma \in G\). There exist elements \(a,b,c,d,e,f \in S\) such that
 \[\alpha = ab,\]
 \[\beta = cd,\]
 \[\gamma = ef.\]
@@ -603,28 +683,17 @@ The simple group handling preserves the overall $O(n^{3/2+\epsilon})$ time compl
 
 % 3. Critical Analysis (3–4 pages)
 \section{Critical Analysis}
-\subsection{Strengths}
-\begin{itemize}
-    \item Optimal complexity (\( \Omega(n^2) \) lower bound).
-    \item Novel techniques: 4-associativity, group decomposition.
-\end{itemize}
 
 \subsection{Limitations}
 
+The classification of sporadic groups relies on precomputed data (e.g., subgroup lattices of the Monster group). This makes the method less self-contained and impractical for new hypothetical simple groups outside the CFSG.
+
 \subsection{Open Problems}
+Extend the 4-associativity framework to infinite groups or other algebraic structures (e.g., loops, semigroups). Current techniques heavily rely on finiteness and Lagrange's theorem.
 
-% 4. Formalni dokazi (1–2 strani)
-\section{Formal Proofs}
-\subsection{4-Associativity Lemma}
-
-\subsection{Existence of Large Subgroups}
-Proof that non-prime finite groups have subgroups of size \( \geq \sqrt{n} \).
-
-% 5. Conclusion (0.5–1 page)
 \section{Conclusion}
-Summary of results, implications for computational group theory, and future directions.
+The algorithm achieves $O(n^2)$ time complexity, matching the $\Omega(n^2)$ lower bound for Cayley table verification. This resolves the long-standing open problem of whether associativity can be verified in quadratic time deterministically, surpassing the $O(n^2 \log n)$ of Light's method and the probabilistic $O(n^2 \log(1/\delta))$ of Rajagopalan-Schulman. While its reliance on CFSG and hidden constants may limit immediate practicality, the novel use of 4-associativity and group decomposition opens avenues for future research in algorithm design and algebraic verification.
 
-% References
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
