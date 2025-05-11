@@ -146,7 +146,7 @@ To know if a table represents a Cayley table, three properties have to be satisf
     \item Existence of inverses: for each \(s \in S\), there exists \(h \in S\) such that \(s \cdot h = h \cdot s = e\).
     \item Associativity: \((a \cdot b) \cdot c = a \cdot (b \cdot c)\) for all \(a,b,c \in S\).
 \end{enumerate}
-So if we are given an \( n \times n \) multiplication table, the goal is to determine if it represents a valid group.
+So if we are given an \( n \times n \) multiplication table, the goal is to determine if it represents a valid group \cite{10756141}.
 
 A simple example of a Cayley table is one for the group \(\{1,-1 \}\):
 \begin{center}
@@ -184,7 +184,7 @@ the intended properties necessary for code construction and analysis. Additional
 and parity check matrices for error-correcting codes directly from the Cayley tables of certain algebraic structures \cite{zurekCodingTheory}.
 
 \subsection{Prior Work}
-To satisfy the third property of Cayley tables (associativity) we would have to check all triples. So to check for associativity, or more precisely that for every \(a,b,c  \in S\) it holds that \((a\times b)\times c = a\times (b\times c)\) a brute force algorithm would require \(\Theta(n^3)\) time. Before the linear-time algorithm, two other methods for checking associativity were proposed.
+To satisfy the third property of Cayley tables (associativity) we would have to check all triples. So to check for associativity, or more precisely that for every \(a,b,c  \in S\) it holds that \((a\times b)\times c = a\times (b\times c)\) a brute force algorithm would require \(\Theta(n^3)\) time. Before the linear-time algorithm, two other methods for checking associativity were proposed \cite{10756141}.
 \subsubsection{Light's \( O(n^2 \log n) \) deterministic method}
 In 1949 Dr. F. W. Light noticed that we can check for associativity only for all triples a,b,c such that \(a,c \in S\) and \(b\in R\), where R is a set of generators of S. A generating set R is a set of elements from set S from which you can build all other elements in the set S with the use of group operation. 
 
@@ -196,7 +196,7 @@ For a finite set S and a binary operation \((\cdot)\) we can define two operatio
 Associativity holds in S if for every element \(b \in R\) the operations \(*\) and \(\circ\) coincide for all \(a,c \in S\). We can do this reduction because if every element in S can be written as a combination of generators from R, and associativity is preserved, it is enough to verify associativity only on elements from R.
 The general idea is to construct the Cayley tables for both operations and see if they are the same.
 
-This method reduces the number of checks needed compared to checking all the combinations, because it avoids redundant computations. It checks associativity in \(\mathcal{O}(n^2logn)\) for R size \(logn\) and all \(a,c \in S\).
+This method reduces the number of checks needed compared to checking all the combinations, because it avoids redundant computations. It checks associativity in \(\mathcal{O}(n^2logn)\) for R size \(logn\) and all \(a,c \in S\) \cite{clifford1961algebraic}.
 
 \begin{figure}[H]
     \centering
@@ -204,7 +204,7 @@ This method reduces the number of checks needed compared to checking all the com
     \caption{Example table to demonstrate Light's associativity test}
 \end{figure}
 
-For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is shown in Figure 2 below. We copy the c-row and c-column from the original table into new tables as the top and left headers. For each element in the header, we copy the corresponding column or row from the original table. To prove that associativity holds, we compare the *(c) and °(c) tables. If they are the same, associativity holds for c. Repeating this for all generators confirms associativity for the whole set.
+For table in Figure 1 \(\{c,e\}\) is the generating set. For c, the procedure is shown in Figure 2 below. We copy the c-row and c-column from the original table into new tables as the top and left headers. For each element in the header, we copy the corresponding column or row from the original table. To prove that associativity holds, we compare the *(c) and °(c) tables. If they are the same, associativity holds for c. Repeating this for all generators confirms associativity for the whole set \cite{clifford1961algebraic}.
 
 \begin{figure}[H]
     \centering
